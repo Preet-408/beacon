@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { FamilyStore } from '../api/family';
-import { Chore, ChoreCompletion, Streak, MemberEarnings } from '../types/family';
+import { Chore, ChoreCompletion, Streak, MemberEarnings, isChoreAssignedTo } from '../types/family';
 
 export function useChores() {
   const store = useMemo(() => new FamilyStore(), []);
@@ -89,14 +89,14 @@ export function useChores() {
 
   const getChoresForMember = useCallback(
     (memberId: string): Chore[] => {
-      return chores.filter((c) => c.assigned_to.includes(memberId));
+      return chores.filter((c) => isChoreAssignedTo(c, memberId));
     },
     [chores]
   );
 
   const getMemberProgress = useCallback(
     (memberId: string): { completed: number; total: number } => {
-      const memberChores = chores.filter((c) => c.assigned_to.includes(memberId));
+      const memberChores = chores.filter((c) => isChoreAssignedTo(c, memberId));
       const completed = memberChores.filter((c) =>
         completionsToday.some(
           (comp) => comp.chore_id === c.id && comp.member_id === memberId

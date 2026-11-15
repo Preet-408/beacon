@@ -1081,3 +1081,47 @@
     min-height: 200px;
   }
 }
+
+/* --- Rewards shop --- */
+.rewards-view { padding: 16px; max-width: 900px; margin: 0 auto; }
+.rewards-title { font-family: var(--font-display); color: var(--text-primary); margin-bottom: 12px; }
+.rewards-members { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.rewards-member {
+  padding: 8px 14px; border-radius: var(--radius-pill); border: 1px solid var(--border);
+  background: var(--bg-surface); color: var(--text-primary); cursor: pointer;
+}
+.rewards-member--active { background: var(--bg-hover); border-color: var(--text-secondary); }
+.rewards-section { margin-bottom: 20px; }
+.rewards-section h3 { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px; }
+.rewards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.rewards-card {
+  position: relative; display: flex; flex-direction: column; gap: 6px; padding: 12px;
+  background: var(--bg-page); border-radius: var(--radius-md); border: 1px solid var(--border);
+}
+.rewards-card-name { color: var(--text-primary); font-weight: 600; }
+.rewards-card-cost { color: var(--text-muted); font-size: 0.85rem; }
+.rewards-ask {
+  padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--bg-surface); color: var(--text-primary); cursor: pointer;
+}
+.rewards-ask:disabled { opacity: 0.5; cursor: default; }
+.rewards-del { position: absolute; top: 6px; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.rewards-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px;
+  background: var(--bg-page); border-radius: var(--radius-md); margin-bottom: 6px; color: var(--text-primary);
+}
+.rewards-actions { display: flex; gap: 6px; }
+.rewards-actions button {
+  padding: 6px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--bg-surface); color: var(--text-primary); cursor: pointer;
+}
+.rewards-add { display: flex; gap: 8px; }
+.rewards-add input {
+  padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--bg-surface); color: var(--text-primary);
+}
+.rewards-add input[type="number"] { width: 80px; }
+.rewards-add button {
+  display: flex; align-items: center; gap: 4px; padding: 8px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); cursor: pointer;
+}

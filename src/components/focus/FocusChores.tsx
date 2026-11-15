@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Chore } from '../../types/family';
-import { formatChoreValue } from '../../types/family';
+import { formatChoreValue, isChoreOverdue } from '../../types/family';
 import { hapticMedium, hapticSuccess } from '../../hooks/useHaptics';
 
 interface FocusChoresProps {
@@ -56,6 +56,11 @@ export function FocusChores({ chores, completedIds, currencySymbol, onToggle }: 
                 <span className="focus-check-label">
                   {chore.icon && <span className="focus-check-icon">{chore.icon}</span>}
                   {chore.name}
+                  {chore.due_time && (
+                    <span className="focus-check-due" style={isChoreOverdue(chore, done) ? { color: '#ef4444' } : undefined}>
+                      {' '}by {chore.due_time}
+                    </span>
+                  )}
                 </span>
                 {chore.value_cents > 0 && (
                   <span className="focus-check-value">

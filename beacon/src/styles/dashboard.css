@@ -1185,3 +1185,15 @@
   cursor: pointer;
 }
 
+
+/* --- Next-up hero --- */
+.next-up-card {
+  padding: 12px 16px;
+  margin: 8px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.next-up-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.next-up-title { font-family: var(--font-display); font-size: 1.25rem; color: var(--text-primary); }
+.next-up-who { font-size: 0.95rem; color: var(--text-secondary); }

@@ -31,6 +31,7 @@ export const en = {
   'nav.grocery': 'Lists',
   'nav.tasks': 'Tasks',
   'nav.leaderboard': 'Leaderboard',
+  'nav.rewards': 'Rewards',
   'nav.music': 'Music',
   'nav.photos': 'Photos',
   'nav.timer': 'Timer',

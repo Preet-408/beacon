@@ -20,6 +20,10 @@ export interface Chore {
   frequency: 'daily' | 'weekly' | 'once';
   value_cents: number;
   icon?: string; // emoji
+  /** When true, only one assignee is responsible each week, rotating in order. */
+  rotate_weekly?: boolean;
+  /** Optional due time, 'HH:MM' (24h). Overdue chores are flagged in kid mode. */
+  due_time?: string;
 }
 
 export interface ChoreCompletion {
@@ -56,6 +60,32 @@ export interface RoutineTaskCompletion {
   task_id: string;
   member_id: string;
   completed_at: string; // ISO date string for serialization
+}
+
+/** A reward kids can spend stars on (e.g. "Pick the movie" for 15 stars). */
+export interface Reward {
+  id: string;
+  name: string;
+  cost: number; // in stars
+  icon?: string; // emoji
+}
+
+/**
+ * A kid asking for a reward, a parent's decision on it, or a manual balance
+ * adjustment. Balance = stars earned from chores - sum of `cost` over
+ * 'approved' entries. An adjustment is an 'approved' entry with kind
+ * 'adjustment'; a negative cost adds stars (e.g. carrying a balance over).
+ */
+export interface RewardRequest {
+  id: string;
+  member_id: string;
+  reward_id: string;
+  reward_name: string;
+  cost: number;
+  status: 'pending' | 'approved' | 'denied';
+  kind?: 'adjustment';
+  requested_at: string;
+  resolved_at?: string;
 }
 
 /** Earnings for a member over a time period */
@@ -162,3 +192,22 @@ export const AVATAR_CATEGORIES: AvatarCategory[] = [
 
 /** Flat list of all avatar emojis (for backwards compat) */
 export const AVATAR_OPTIONS = AVATAR_CATEGORIES.flatMap((c) => c.emojis);
+
+/** Whole weeks since the Unix epoch (Thursday-aligned; stable across devices). */
+function weekIndex(date: Date): number {
+  return Math.floor(date.getTime() / (7 * 86400000));
+}
+
+/** Is this member responsible for the chore right now (honors weekly rotation)? */
+export function isChoreAssignedTo(chore: Chore, memberId: string, date: Date = new Date()): boolean {
+  if (!chore.assigned_to.includes(memberId)) return false;
+  if (!chore.rotate_weekly || chore.assigned_to.length < 2) return true;
+  return chore.assigned_to[weekIndex(date) % chore.assigned_to.length] === memberId;
+}
+
+/** True when a due time ('HH:MM') has passed today. */
+export function isChoreOverdue(chore: Chore, done: boolean, now: Date = new Date()): boolean {
+  if (done || !chore.due_time) return false;
+  const [h, m] = chore.due_time.split(':').map(Number);
+  return now.getHours() * 60 + now.getMinutes() > h * 60 + m;
+}

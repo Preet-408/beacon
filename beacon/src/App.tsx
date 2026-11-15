@@ -31,6 +31,7 @@ import { useHaAuth } from './hooks/useHaAuth';
 import { useTheme } from './hooks/useTheme';
 import { useLocalCalendar } from './hooks/useLocalCalendar';
 import { useDashboardTasks } from './hooks/useDashboardTasks';
+import { RewardsView } from './components/RewardsView';
 import OnboardingView from './components/OnboardingView';
 import { FocusView } from './components/focus/FocusView';
 import { getFocusMemberId, clearFocusMode, setDeviceFocusMember } from './focus';
@@ -211,6 +212,13 @@ export function App() {
     },
     [fetchEvents],
   );
+
+  // Keep the event fetch window around the Dashboard's selected day. Without
+  // this, stepping the dashboard date past the fetched week shows no events.
+  useEffect(() => {
+    const week = startOfWeek(dashboardDate, { weekStartsOn: settings.weekStartsOn });
+    setVisibleWeekStart((prev) => (prev.getTime() === week.getTime() ? prev : week));
+  }, [dashboardDate, settings.weekStartsOn]);
 
   // Event notifications (browser + HA mobile_app)
   useNotifications(events, client, !focusMemberId, settings.notificationMinutes);
@@ -622,6 +630,8 @@ export function App() {
               {t('app.choresDisabled')}
             </div>
           )
+        ) : activeView === 'rewards' ? (
+          settings.choresEnabled ? <RewardsView /> : <div className="chores-empty" style={{ padding: 48 }}>{t('app.choresDisabled')}</div>
         ) : activeView === 'music' ? (
           <MusicView
             activePlayer={music.activePlayer}

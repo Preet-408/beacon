@@ -16,6 +16,8 @@ const EMPTY_CHORE_FORM = {
   frequency: 'daily' as Chore['frequency'],
   assigned_to: [] as string[],
   icon: '🧹',
+  rotate_weekly: false,
+  due_time: '',
 };
 
 interface UnassignedChoreCardProps {
@@ -193,6 +195,8 @@ export function ChoresView() {
       frequency: chore.frequency,
       assigned_to: [...chore.assigned_to],
       icon: chore.icon || '🧹',
+      rotate_weekly: chore.rotate_weekly ?? false,
+      due_time: chore.due_time ?? '',
     });
     setEditingChoreId(chore.id);
     setShowForm(true);
@@ -214,6 +218,8 @@ export function ChoresView() {
         frequency: newChore.frequency,
         assigned_to: newChore.assigned_to,
         icon: newChore.icon,
+        rotate_weekly: newChore.rotate_weekly,
+        due_time: newChore.due_time || undefined,
       });
     } else {
       addChore({
@@ -222,6 +228,8 @@ export function ChoresView() {
         frequency: newChore.frequency,
         assigned_to: newChore.assigned_to,
         icon: newChore.icon,
+        rotate_weekly: newChore.rotate_weekly,
+        due_time: newChore.due_time || undefined,
       });
     }
 
@@ -461,6 +469,27 @@ export function ChoresView() {
                   <option value="weekly">{t('chores.weekly')}</option>
                   <option value="once">{t('chores.oneTime')}</option>
                 </select>
+              </div>
+
+              <div className="form-field">
+                <label className="form-label">Due by (optional)</label>
+                <input
+                  type="time"
+                  className="form-input"
+                  value={newChore.due_time}
+                  onChange={(e) => setNewChore((f) => ({ ...f, due_time: e.target.value }))}
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-label">
+                  <input
+                    type="checkbox"
+                    checked={newChore.rotate_weekly}
+                    onChange={(e) => setNewChore((f) => ({ ...f, rotate_weekly: e.target.checked }))}
+                  />{' '}
+                  Rotate weekly between assignees
+                </label>
               </div>
 
               <div className="form-field">

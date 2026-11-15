@@ -7,6 +7,10 @@ import { BeaconSettings } from '../../hooks/useSettings';
 import { ScreenSaver } from '../ScreenSaver';
 import { RoutineCard } from './RoutineCard';
 import { FocusChores } from './FocusChores';
+import { FocusRewards } from './FocusRewards';
+import { useRewards } from '../../hooks/useRewards';
+import { notifyParents } from '../../api/notify';
+import { isChoreAssignedTo } from '../../types/family';
 import { pickRoutine, getTimeOfDay } from './period';
 
 interface FocusViewProps {
@@ -25,6 +29,8 @@ export function FocusView({ memberId, settings, onExit }: FocusViewProps) {
   const { members } = useFamily();
   const routinesApi = useRoutines(memberId);
   const choresApi = useChores();
+  const rewardsApi = useRewards();
+  const [tab, setTab] = useState<'today' | 'shop'>('today');
 
   const member = members.find((m) => m.id === memberId);
 
@@ -41,9 +47,10 @@ export function FocusView({ memberId, settings, onExit }: FocusViewProps) {
     const t = setInterval(() => {
       refreshRoutines();
       refreshChores();
+      rewardsApi.refresh();
     }, 5 * 60 * 1000);
     return () => clearInterval(t);
-  }, [refreshRoutines, refreshChores]);
+  }, [refreshRoutines, refreshChores, rewardsApi.refresh]);
 
   // Exit gesture: 5 taps on the clock within 3 seconds
   const taps = useRef<number[]>([]);
@@ -58,7 +65,7 @@ export function FocusView({ memberId, settings, onExit }: FocusViewProps) {
   };
 
   const memberChores = useMemo(
-    () => choresApi.chores.filter((c) => c.assigned_to.includes(memberId)),
+    () => choresApi.chores.filter((c) => isChoreAssignedTo(c, memberId)),
     [choresApi.chores, memberId]
   );
   const completedChoreIds = useMemo(() => {
@@ -68,6 +75,17 @@ export function FocusView({ memberId, settings, onExit }: FocusViewProps) {
     }
     return ids;
   }, [choresApi.completionsToday, memberId]);
+
+  // Tell parents once when a kid finishes everything for the day.
+  const notifiedDone = useRef<string>('');
+  const doneNow = memberChores.length > 0 && memberChores.every((c) => completedChoreIds.has(c.id));
+  useEffect(() => {
+    const key = `${memberId}-${format(new Date(), 'yyyy-MM-dd')}`;
+    if (doneNow && member && notifiedDone.current !== key) {
+      notifiedDone.current = key;
+      notifyParents('Chores done', `${member.name} finished all chores today 🎉`);
+    }
+  }, [doneNow, memberId, member]);
 
   const pick = pickRoutine(routinesApi.routines, now);
 
@@ -108,7 +126,21 @@ export function FocusView({ memberId, settings, onExit }: FocusViewProps) {
       </header>
 
       <main className="focus-body">
-        {allDone ? (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <button type="button" className="settings-btn" onClick={() => setTab('today')} disabled={tab === 'today'}>Today</button>
+          <button type="button" className="settings-btn" onClick={() => setTab('shop')} disabled={tab === 'shop'}>
+            Rewards ({rewardsApi.getBalance(memberId)} ⭐)
+          </button>
+        </div>
+        {tab === 'shop' ? (
+          <FocusRewards
+            rewards={rewardsApi.rewards}
+            pending={rewardsApi.pending}
+            balance={rewardsApi.getBalance(memberId)}
+            memberId={memberId}
+            onAsk={(r) => rewardsApi.requestReward(memberId, r)}
+          />
+        ) : allDone ? (
           <div className="focus-celebration">
             <div className="focus-celebration-emoji">🎉</div>
             <div className="focus-celebration-title">All done — great job!</div>
