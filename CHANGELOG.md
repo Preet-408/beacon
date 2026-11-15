@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/Preet-408/beacon/compare/v1.0.0...v1.0.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* stop semantic-release commenting on upstream issue numbers ([c3ba6f3](https://github.com/Preet-408/beacon/commit/c3ba6f3474b2cdd860b35e157e255bd00b291454))
+
 # 1.0.0 (2026-11-15)
 
 
