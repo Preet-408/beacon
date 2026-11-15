@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { loadData, saveData } from '../api/beacon-store';
 import { Check, X, Plus, Trash2 } from 'lucide-react';
 import { useRewards } from '../hooks/useRewards';
 import { useFamily } from '../hooks/useFamily';
@@ -11,6 +12,26 @@ export function RewardsView() {
   const [memberId, setMemberId] = useState<string>('');
   const [name, setName] = useState('');
   const [cost, setCost] = useState(20);
+
+  // Parent PIN: a deterrent so kids can't approve their own requests (not real security).
+  const [pin, setPin] = useState<string>('');
+  useEffect(() => {
+    loadData<string>('beacon_parent_pin', '').then(setPin);
+  }, []);
+  const guard = (action: () => void) => {
+    if (pin) {
+      const entered = window.prompt('Parent PIN');
+      if (entered !== pin) return;
+    }
+    action();
+  };
+  const changePin = () => {
+    if (pin && window.prompt('Current parent PIN') !== pin) return;
+    const next = window.prompt('New parent PIN (leave empty to remove)') ?? null;
+    if (next === null) return;
+    setPin(next.trim());
+    saveData('beacon_parent_pin', next.trim());
+  };
 
   const kids = members.filter((m) => m.role !== 'parent');
   const people = kids.length > 0 ? kids : members;
@@ -41,8 +62,8 @@ export function RewardsView() {
             <div key={r.id} className="rewards-row">
               <span>{nameOf(r.member_id)} wants <strong>{r.reward_name}</strong> ({r.cost} {STAR_CURRENCY})</span>
               <span className="rewards-actions">
-                <button aria-label="Approve" onClick={() => resolveRequest(r.id, true)}><Check size={18} /></button>
-                <button aria-label="Deny" onClick={() => resolveRequest(r.id, false)}><X size={18} /></button>
+                <button aria-label="Approve" onClick={() => guard(() => resolveRequest(r.id, true))}><Check size={18} /></button>
+                <button aria-label="Deny" onClick={() => guard(() => resolveRequest(r.id, false))}><X size={18} /></button>
               </span>
             </div>
           ))}
@@ -66,7 +87,7 @@ export function RewardsView() {
                 >
                   {asked ? 'Asked' : affordable ? 'Ask' : `Need ${r.cost - balance} more`}
                 </button>
-                <button className="rewards-del" aria-label={`Delete ${r.name}`} onClick={() => removeReward(r.id)}>
+                <button className="rewards-del" aria-label={`Delete ${r.name}`} onClick={() => guard(() => removeReward(r.id))}>
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -78,13 +99,18 @@ export function RewardsView() {
 
       <section className="rewards-section">
         <h3>Add a reward</h3>
+        <button type="button" className="rewards-ask" onClick={changePin} style={{ marginBottom: 8 }}>
+          {pin ? 'Change parent PIN' : 'Set parent PIN'}
+        </button>
         <form
           className="rewards-add"
           onSubmit={(e) => {
             e.preventDefault();
             if (!name.trim() || cost <= 0) return;
-            addReward({ name: name.trim(), cost, icon: '🎁' });
-            setName('');
+            guard(() => {
+              addReward({ name: name.trim(), cost, icon: '🎁' });
+              setName('');
+            });
           }}
         >
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Reward name" />
