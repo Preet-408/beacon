@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { loadData, saveData } from '../api/beacon-store';
+import { NOTIFY_KEY } from '../api/notify';
 import { Check, X, Plus, Trash2 } from 'lucide-react';
 import { useRewards } from '../hooks/useRewards';
 import { useFamily } from '../hooks/useFamily';
@@ -8,7 +9,7 @@ import { STAR_CURRENCY } from '../types/family';
 /** Rewards shop: kids spend stars, parents approve. */
 export function RewardsView() {
   const { members } = useFamily();
-  const { rewards, pending, getBalance, addReward, removeReward, requestReward, resolveRequest } = useRewards();
+  const { rewards, pending, getBalance, getWeekly, history, addReward, removeReward, requestReward, resolveRequest } = useRewards();
   const [memberId, setMemberId] = useState<string>('');
   const [name, setName] = useState('');
   const [cost, setCost] = useState(20);
@@ -31,6 +32,12 @@ export function RewardsView() {
     if (next === null) return;
     setPin(next.trim());
     saveData('beacon_parent_pin', next.trim());
+  };
+
+  const setNotify = async () => {
+    const current = await loadData<string>(NOTIFY_KEY, '');
+    const next = window.prompt('HA notify service for push alerts (e.g. mobile_app_preets_iphone). Empty = off.', current);
+    if (next !== null) saveData(NOTIFY_KEY, next.trim());
   };
 
   const kids = members.filter((m) => m.role !== 'parent');
@@ -98,7 +105,37 @@ export function RewardsView() {
       </section>
 
       <section className="rewards-section">
+        <h3>This week</h3>
+        <div className="rewards-grid">
+          {people.map((m) => {
+            const w = getWeekly(m.id);
+            return (
+              <div key={m.id} className="rewards-card">
+                <div className="rewards-card-name">{m.name}</div>
+                <div className="rewards-card-cost">{w.chores} chores done</div>
+                <div className="rewards-card-cost">+{w.earned} {STAR_CURRENCY} earned, −{w.spent} spent</div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="rewards-section">
+        <h3>History</h3>
+        {history.length === 0 && <div className="chores-empty">Nothing yet.</div>}
+        {history.map((h, i) => (
+          <div key={i} className="rewards-row">
+            <span>{nameOf(h.member_id)}: {h.text}</span>
+            <strong>{h.stars > 0 ? '+' : ''}{h.stars} {STAR_CURRENCY}</strong>
+          </div>
+        ))}
+      </section>
+
+      <section className="rewards-section">
         <h3>Add a reward</h3>
+        <button type="button" className="rewards-ask" onClick={setNotify} style={{ marginBottom: 8, marginRight: 8 }}>
+          Push alerts
+        </button>
         <button type="button" className="rewards-ask" onClick={changePin} style={{ marginBottom: 8 }}>
           {pin ? 'Change parent PIN' : 'Set parent PIN'}
         </button>

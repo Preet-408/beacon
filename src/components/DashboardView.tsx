@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { isSameDay, startOfDay, addDays, parseISO } from 'date-fns';
 import { CalendarEvent, WeatherData } from '../types';
-import { Chore, FamilyMember } from '../types/family';
+import { Chore, FamilyMember, isChoreAssignedTo } from '../types/family';
 import { useFamilyEvents } from '../hooks/useFamilyEvents';
 import { useMealPlans } from '../hooks/useMealPlans';
 import { useDashboardLayout } from '../hooks/useDashboardLayout';
@@ -17,6 +17,7 @@ import { MenuCard } from './cards/MenuCard';
 import { TasksCard } from './cards/TasksCard';
 import type { TaskmateUser } from '../types/taskmate';
 import { DashboardCard, DashboardCardContext, DashboardRegionLayout, TodoItem } from '../types/dashboard-cards';
+import { NextUpCard } from './NextUpCard';
 import { useTranslation } from '../i18n';
 
 export type { TodoItem } from '../types/dashboard-cards';
@@ -80,7 +81,7 @@ export function DashboardView({
   const isViewingToday = isSameDay(selectedDate, startOfDay(now));
 
   const filteredChores = selectedMemberFilter
-    ? chores.filter((c) => c.assigned_to.includes(selectedMemberFilter))
+    ? chores.filter((c) => isChoreAssignedTo(c, selectedMemberFilter))
     : chores;
 
   useEffect(() => {
@@ -151,6 +152,7 @@ export function DashboardView({
     if (layout === 'classic') {
       return (
         <div className="dashboard dashboard--classic">
+        {isViewingToday && <NextUpCard events={events} members={members} timeFormat={timeFormat} />}
           <ClockWeatherCard config={{}} context={context} />
           <main className="dash-classic">
             <AgendaTodayCard config={{}} context={context} />
@@ -166,6 +168,7 @@ export function DashboardView({
 
     return (
       <div className={`dashboard dashboard--${layout}`}>
+        {isViewingToday && <NextUpCard events={events} members={members} timeFormat={timeFormat} />}
         <ClockWeatherCard config={{}} context={context} />
         <main className="dash-main">
           <FamilyCalendarCard config={{}} context={context} />
