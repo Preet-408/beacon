@@ -58,6 +58,32 @@ export interface RoutineTaskCompletion {
   completed_at: string; // ISO date string for serialization
 }
 
+/** A reward kids can spend stars on (e.g. "Pick the movie" for 15 stars). */
+export interface Reward {
+  id: string;
+  name: string;
+  cost: number; // in stars
+  icon?: string; // emoji
+}
+
+/**
+ * A kid asking for a reward, a parent's decision on it, or a manual balance
+ * adjustment. Balance = stars earned from chores - sum of `cost` over
+ * 'approved' entries. An adjustment is an 'approved' entry with kind
+ * 'adjustment'; a negative cost adds stars (e.g. carrying a balance over).
+ */
+export interface RewardRequest {
+  id: string;
+  member_id: string;
+  reward_id: string;
+  reward_name: string;
+  cost: number;
+  status: 'pending' | 'approved' | 'denied';
+  kind?: 'adjustment';
+  requested_at: string;
+  resolved_at?: string;
+}
+
 /** Earnings for a member over a time period */
 export interface MemberEarnings {
   member_id: string;

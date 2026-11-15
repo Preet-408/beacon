@@ -5,6 +5,8 @@ import {
   Streak,
   Routine,
   RoutineTaskCompletion,
+  Reward,
+  RewardRequest,
 } from '../types/family';
 import { loadData, loadDataSync, saveData } from './beacon-store';
 import { localDayKey } from './date-keys';
@@ -16,6 +18,8 @@ const STORAGE_KEYS = {
   streaks: 'beacon_streaks',
   routines: 'beacon_routines',
   routine_completions: 'beacon_routine_completions',
+  rewards: 'beacon_rewards',
+  reward_requests: 'beacon_reward_requests',
 } as const;
 
 function generateId(): string {
@@ -210,6 +214,90 @@ export class FamilyStore {
     streak.last_completed = new Date().toISOString();
 
     await saveData(STORAGE_KEYS.streaks, streaks);
+  }
+
+
+  // --- Rewards (spend stars) ---
+
+  async getRewards(): Promise<Reward[]> {
+    return loadData<Reward[]>(STORAGE_KEYS.rewards, []);
+  }
+
+  getRewardsSync(): Reward[] {
+    return loadDataSync<Reward[]>(STORAGE_KEYS.rewards, []);
+  }
+
+  async addReward(reward: Omit<Reward, 'id'>): Promise<Reward> {
+    const rewards = await this.getRewards();
+    const created: Reward = { ...reward, id: generateId() };
+    rewards.push(created);
+    await saveData(STORAGE_KEYS.rewards, rewards);
+    return created;
+  }
+
+  async removeReward(id: string): Promise<boolean> {
+    const rewards = await this.getRewards();
+    const filtered = rewards.filter((r) => r.id !== id);
+    if (filtered.length === rewards.length) return false;
+    await saveData(STORAGE_KEYS.rewards, filtered);
+    return true;
+  }
+
+  async getRewardRequests(): Promise<RewardRequest[]> {
+    return loadData<RewardRequest[]>(STORAGE_KEYS.reward_requests, []);
+  }
+
+  getRewardRequestsSync(): RewardRequest[] {
+    return loadDataSync<RewardRequest[]>(STORAGE_KEYS.reward_requests, []);
+  }
+
+  async requestReward(memberId: string, reward: Reward): Promise<RewardRequest> {
+    const requests = await this.getRewardRequests();
+    // One open request per kid per reward.
+    const open = requests.find(
+      (r) => r.status === 'pending' && r.member_id === memberId && r.reward_id === reward.id
+    );
+    if (open) return open;
+    const request: RewardRequest = {
+      id: generateId(),
+      member_id: memberId,
+      reward_id: reward.id,
+      reward_name: reward.name,
+      cost: reward.cost,
+      status: 'pending',
+      requested_at: new Date().toISOString(),
+    };
+    requests.push(request);
+    await saveData(STORAGE_KEYS.reward_requests, requests);
+    return request;
+  }
+
+  async resolveRewardRequest(id: string, approve: boolean): Promise<RewardRequest | null> {
+    const requests = await this.getRewardRequests();
+    const index = requests.findIndex((r) => r.id === id && r.status === 'pending');
+    if (index === -1) return null;
+    requests[index] = {
+      ...requests[index],
+      status: approve ? 'approved' : 'denied',
+      resolved_at: new Date().toISOString(),
+    };
+    await saveData(STORAGE_KEYS.reward_requests, requests);
+    return requests[index];
+  }
+
+  /** Stars earned from chores, all time, per member (chore value_cents / 100). */
+  async getStarsEarned(): Promise<Record<string, number>> {
+    const [completions, chores] = await Promise.all([this.getCompletions(), this.getChores()]);
+    const value = new Map(chores.map((c) => [c.id, c.value_cents]));
+    const cents: Record<string, number> = {};
+    for (const comp of completions) {
+      const v = value.get(comp.chore_id);
+      if (v === undefined) continue;
+      cents[comp.member_id] = (cents[comp.member_id] ?? 0) + v;
+    }
+    const stars: Record<string, number> = {};
+    for (const [id, c] of Object.entries(cents)) stars[id] = Math.round(c / 100);
+    return stars;
   }
 
   // --- Routines ---

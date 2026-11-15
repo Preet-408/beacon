@@ -26,6 +26,7 @@ export const de: Record<TranslationKey, string> = {
   'nav.grocery': 'Listen',
   'nav.tasks': 'To-dos',
   'nav.leaderboard': 'Bestenliste',
+  'nav.rewards': 'Belohnungen',
   'nav.music': 'Musik',
   'nav.photos': 'Fotos',
   'nav.timer': 'Timer',

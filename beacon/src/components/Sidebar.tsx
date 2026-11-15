@@ -6,6 +6,7 @@ import {
   ShoppingCart,
   ClipboardList,
   Trophy,
+  Gift,
   Music,
   Image,
   Settings,
@@ -17,7 +18,7 @@ import {
 import beaconIcon from '../assets/beacon-app-icon.svg';
 import { useTranslation, type TranslationKey } from '../i18n';
 
-export type SidebarView = 'dashboard' | 'calendar' | 'chores' | 'grocery' | 'tasks' | 'leaderboard' | 'music' | 'photos' | 'timer' | 'weather' | 'settings';
+export type SidebarView = 'dashboard' | 'calendar' | 'chores' | 'grocery' | 'tasks' | 'leaderboard' | 'rewards' | 'music' | 'photos' | 'timer' | 'weather' | 'settings';
 
 interface SidebarProps {
   activeView: SidebarView;
@@ -41,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'grocery', icon: <ShoppingCart size={ICON_SIZE} strokeWidth={STROKE_WIDTH} />, labelKey: 'nav.grocery' },
   { id: 'tasks', icon: <ClipboardList size={ICON_SIZE} strokeWidth={STROKE_WIDTH} />, labelKey: 'nav.tasks' },
   { id: 'leaderboard', icon: <Trophy size={ICON_SIZE} strokeWidth={STROKE_WIDTH} />, labelKey: 'nav.leaderboard' },
+  { id: 'rewards', icon: <Gift size={ICON_SIZE} strokeWidth={STROKE_WIDTH} />, labelKey: 'nav.rewards' },
   { id: 'music', icon: <Music size={ICON_SIZE} strokeWidth={STROKE_WIDTH} />, labelKey: 'nav.music' },
   { id: 'photos', icon: <Image size={ICON_SIZE} strokeWidth={STROKE_WIDTH} />, labelKey: 'nav.photos' },
   { id: 'timer', icon: <TimerIcon size={ICON_SIZE} strokeWidth={STROKE_WIDTH} />, labelKey: 'nav.timer' },

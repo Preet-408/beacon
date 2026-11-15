@@ -2,8 +2,8 @@ name: Beacon
 version: "1.40.0"
 slug: beacon
 description: "Family command center for wall-mounted displays"
-url: "https://github.com/asachs01/beacon"
-image: ghcr.io/asachs01/beacon
+url: "https://github.com/Preet-408/beacon"
+image: ghcr.io/preet-408/beacon
 arch:
   - amd64
   - aarch64
